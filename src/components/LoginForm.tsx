@@ -9,6 +9,8 @@ export function LoginForm() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
+  const supabase = createClient();
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email.trim()) {
@@ -18,7 +20,6 @@ export function LoginForm() {
     setLoading(true);
     setError("");
 
-    const supabase = createClient();
     const { error: sbError } = await supabase.auth.signInWithOtp({
       email: email.trim().toLowerCase(),
       options: {
@@ -84,62 +85,66 @@ export function LoginForm() {
               </button>
             </div>
           ) : (
-            <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-              <div>
-                <label
-                  htmlFor="email"
-                  className="block text-xs font-medium text-slate-500 mb-1.5"
-                >
-                  E-Mail-Adresse
-                </label>
-                <input
-                  id="email"
-                  type="email"
-                  inputMode="email"
-                  autoComplete="email"
-                  autoFocus
-                  value={email}
-                  onChange={(e) => { setEmail(e.target.value); setError(""); }}
-                  placeholder="du@beispiel.de"
-                  className={`
-                    w-full px-4 py-3 rounded-xl border text-sm font-medium
-                    bg-white placeholder-slate-300 text-slate-700
-                    focus:outline-none focus:ring-2 focus:ring-sky-400/60 focus:border-sky-400
-                    transition-all duration-200
-                    ${error ? "border-red-300 bg-red-50/40" : "border-slate-200"}
-                  `}
-                />
-                {error && (
-                  <p className="mt-1.5 text-xs text-red-500 font-medium">{error}</p>
-                )}
-              </div>
+            <div className="flex flex-col gap-4">
 
-              <button
-                type="submit"
-                disabled={loading}
-                className="
-                  w-full py-3 rounded-xl text-sm font-semibold
-                  bg-sky-500 text-white shadow-sm shadow-sky-200
-                  hover:bg-sky-600 active:scale-95
-                  transition-all duration-200
-                  disabled:opacity-60 disabled:cursor-not-allowed
-                  flex items-center justify-center gap-2
-                "
-              >
-                {loading ? (
-                  <>
-                    <span className="w-4 h-4 rounded-full border-2 border-white/40 border-t-white animate-spin" />
-                    Sende Link…
-                  </>
-                ) : (
-                  "Magic Link senden ✨"
-                )}
-              </button>
+              {/* ── Magic Link Form ── */}
+              <form onSubmit={handleSubmit} className="flex flex-col gap-3">
+                <div>
+                  <label
+                    htmlFor="email"
+                    className="block text-xs font-medium text-slate-500 mb-1.5"
+                  >
+                    E-Mail-Adresse
+                  </label>
+                  <input
+                    id="email"
+                    type="email"
+                    inputMode="email"
+                    autoComplete="email"
+                    autoFocus
+                    value={email}
+                    onChange={(e) => { setEmail(e.target.value); setError(""); }}
+                    placeholder="du@beispiel.de"
+                    className={`
+                      w-full px-4 py-3 rounded-xl border text-sm font-medium
+                      bg-white placeholder-slate-300 text-slate-700
+                      focus:outline-none focus:ring-2 focus:ring-sky-400/60 focus:border-sky-400
+                      transition-all duration-200
+                      ${error ? "border-red-300 bg-red-50/40" : "border-slate-200"}
+                    `}
+                  />
+                  {error && (
+                    <p className="mt-1.5 text-xs text-red-500 font-medium">{error}</p>
+                  )}
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="
+                    w-full py-3 rounded-xl text-sm font-semibold
+                    bg-sky-500 text-white shadow-sm shadow-sky-200
+                    hover:bg-sky-600 active:scale-95
+                    transition-all duration-200
+                    disabled:opacity-60 disabled:cursor-not-allowed
+                    flex items-center justify-center gap-2
+                  "
+                >
+                  {loading ? (
+                    <>
+                      <span className="w-4 h-4 rounded-full border-2 border-white/40 border-t-white animate-spin" />
+                      Sende Link…
+                    </>
+                  ) : (
+                    "Magic Link senden ✨"
+                  )}
+                </button>
+              </form>
 
               <p className="text-center text-[11px] text-slate-400 leading-relaxed">
                 Kein Passwort nötig. Du bekommst einen Einmal-Link per E-Mail.
               </p>
-            </form>
+            </div>
           )}
         </div>
       </div>
