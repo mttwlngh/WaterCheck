@@ -1,12 +1,39 @@
 "use client";
 
+import { useEffect, useState } from "react";
+import type { User } from "@supabase/supabase-js";
+import { createClient } from "@/lib/supabase/client";
 import { useWaterTracker } from "@/hooks/useWaterTracker";
 import { StanleyCup } from "@/components/StanleyCup";
 import { StatsCard } from "@/components/StatsCard";
 import { WaterInput } from "@/components/WaterInput";
 import { QuickAddButtons } from "@/components/QuickAddButtons";
+import { LoginForm } from "@/components/LoginForm";
 
 export default function Home() {
+  const [user, setUser] = useState<User | null>(null);
+  const [authLoading, setAuthLoading] = useState(true);
+  const supabase = createClient();
+
+  // Listen to auth state changes
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data }) => {
+      setUser(data.user);
+      setAuthLoading(false);
+    });
+
+    const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user ?? null);
+    });
+
+    return () => listener.subscription.unsubscribe();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+  };
+
   const {
     intake,
     percentage,
@@ -16,7 +43,21 @@ export default function Home() {
     reset,
     hydrated,
     goal,
-  } = useWaterTracker();
+  } = useWaterTracker(user);
+
+  // ── Auth loading state ──
+  if (authLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-slate-50">
+        <div className="w-8 h-8 rounded-full border-2 border-sky-400 border-t-transparent animate-spin" />
+      </div>
+    );
+  }
+
+  // ── Not logged in ──
+  if (!user) {
+    return <LoginForm />;
+  }
 
   if (!hydrated) {
     return (
@@ -56,14 +97,31 @@ export default function Home() {
         <div className="flex flex-col flex-1 lg:hidden">
 
           {/* Mobile Header */}
-          <header className="px-5 pt-8 pb-3 text-center">
-            <div className="inline-flex items-center gap-1.5 mb-3 px-3 py-1 rounded-full bg-sky-50 border border-sky-100">
-              <span className="text-sky-500 text-xs">💧</span>
-              <span className="text-[11px] font-semibold text-sky-600 tracking-widest uppercase">
-                Water Check
-              </span>
+          <header className="px-5 pt-8 pb-3">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-sky-50 border border-sky-100">
+                <span className="text-sky-500 text-xs">💧</span>
+                <span className="text-[11px] font-semibold text-sky-600 tracking-widest uppercase">
+                  Water Check
+                </span>
+              </div>
+              {/* User + Logout */}
+              <div className="flex items-center gap-2">
+                <span className="text-[11px] text-slate-400 truncate max-w-[120px]">
+                  {user.email}
+                </span>
+                <button
+                  onClick={handleLogout}
+                  title="Abmelden"
+                  className="p-1.5 rounded-lg text-slate-400 hover:text-rose-500 hover:bg-rose-50 transition-all active:scale-95"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/>
+                  </svg>
+                </button>
+              </div>
             </div>
-            <h1 className="text-2xl font-bold text-slate-800 tracking-tight">
+            <h1 className="mt-3 text-2xl font-bold text-slate-800 tracking-tight">
               Hydration Tracker
             </h1>
           </header>
@@ -197,21 +255,39 @@ export default function Home() {
         ════════════════════════════════ */}
         <div className="hidden lg:flex lg:flex-col lg:flex-1">
           {/* Desktop Header */}
-          <header className="px-6 pt-10 pb-4 text-center">
-            <div className="inline-flex items-center gap-2 mb-4 px-3.5 py-1.5 rounded-full bg-sky-50 border border-sky-100">
-              <span className="text-sky-500 text-sm">💧</span>
-              <span className="text-xs font-semibold text-sky-600 tracking-wide uppercase">
-                Water Check
-              </span>
+          <header className="px-8 pt-8 pb-4">
+            <div className="max-w-5xl mx-auto flex items-center justify-between">
+              {/* Brand */}
+              <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-sky-50 border border-sky-100">
+                  <span className="text-sky-500 text-sm">💧</span>
+                  <span className="text-xs font-semibold text-sky-600 tracking-wide uppercase">
+                    Water Check
+                  </span>
+                </div>
+                <h1 className="text-xl font-bold text-slate-800 tracking-tight ml-1">
+                  Hydration Tracker
+                </h1>
+              </div>
+              {/* User info + logout */}
+              <div className="flex items-center gap-3">
+                <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-50 border border-slate-100">
+                  <div className="w-5 h-5 rounded-full bg-sky-100 flex items-center justify-center text-[10px] font-bold text-sky-600 uppercase">
+                    {user.email?.[0]}
+                  </div>
+                  <span className="text-xs text-slate-500 font-medium">{user.email}</span>
+                </div>
+                <button
+                  onClick={handleLogout}
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-medium text-slate-400 border border-slate-200 hover:text-rose-500 hover:border-rose-200 hover:bg-rose-50/50 transition-all active:scale-95"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/>
+                  </svg>
+                  Abmelden
+                </button>
+              </div>
             </div>
-            <h1 className="text-4xl font-bold text-slate-800 tracking-tight">
-              Hydration Tracker
-            </h1>
-            <p className="mt-2 text-sm text-slate-400 max-w-sm mx-auto leading-relaxed">
-              Dein tägliches Ziel:{" "}
-              <span className="text-sky-500 font-semibold">3.000 ml</span>.
-              Tracke jeden Schluck und bleibe hydratisiert.
-            </p>
           </header>
 
           {/* Desktop Main */}
