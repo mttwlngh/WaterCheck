@@ -45,10 +45,10 @@ export function StanleyCup({ percentage, isGoalReached, mobile = false }: Stanle
 
           {/* Gradient for cup glass effect */}
           <linearGradient id="cupGlassGrad" x1="0%" y1="0%" x2="100%" y2="0%">
-            <stop offset="0%" stopColor="#e0f2fe" stopOpacity="0.9" />
-            <stop offset="35%" stopColor="#f0f9ff" stopOpacity="0.4" />
-            <stop offset="65%" stopColor="#f0f9ff" stopOpacity="0.3" />
-            <stop offset="100%" stopColor="#bae6fd" stopOpacity="0.85" />
+            <stop offset="0%" stopColor="#e0f2fe" stopOpacity="0.25" />
+            <stop offset="35%" stopColor="#f0f9ff" stopOpacity="0.08" />
+            <stop offset="65%" stopColor="#f0f9ff" stopOpacity="0.06" />
+            <stop offset="100%" stopColor="#bae6fd" stopOpacity="0.22" />
           </linearGradient>
 
           {/* Water gradient */}
@@ -99,7 +99,8 @@ export function StanleyCup({ percentage, isGoalReached, mobile = false }: Stanle
         {/* ── Cup Body Background ── */}
         <path
           d="M 52,70 L 30,440 Q 30,460 50,460 L 170,460 Q 190,460 190,440 L 168,70 Z"
-          fill="#f8fafc"
+          fill="#f0f9ff"
+          fillOpacity="0.6"
           stroke="#cbd5e1"
           strokeWidth="2"
         />
